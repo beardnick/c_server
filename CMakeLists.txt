@@ -14,6 +14,9 @@ set(CMAKE_CXX_STANDARD 11)
 # 将整个socket目录内容放入socket_src中
 # aux_source_directory(socket socket)
 
+# 生成的可执行文件全部放在一个目录下
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
+
 # cmake --build . --target client
 add_executable(client client.cpp)
 
