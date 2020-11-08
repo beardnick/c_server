@@ -1,7 +1,15 @@
-
+#include <algorithm>
+#include <cstdio>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "socket/socket.h"
+#include <unistd.h>
+#include <iostream>
+
+void parseHttp(char* buffer){
+    std::string content = std::string(buffer);
+    std::cout<<content<<std::endl;
+}
 
 // 打开浏览器看效果
 // http://127.0.0.1:8080
@@ -18,6 +26,10 @@ int main(int argc, char *argv[]) {
     }
     char buffer[1024];
     int len = recv(conn,&buffer,sizeof(buffer),0);
-    printf("%s",buffer);
+    if (len <= 0 ) {
+        perror("read tcp data error");
+    }
+    parseHttp(buffer);
+    close(conn);
     return 0;
 }
