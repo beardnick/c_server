@@ -38,6 +38,7 @@ public:
     std::string Body;
 };
 
+// 静态网站的根路径
 // 因为编译输出的目录是 bin,所以要使用这样的相对路径
 // 为了简单，也可以使用绝对路径
 std::string web_root= "../dist";
@@ -60,6 +61,7 @@ Request parseHttp(char* buffer){
             empty_line = i;
             break;
         }
+        // 以空格为分隔符，依次读取参数
         std::istringstream is(l);
         if (i == 0){
             // 请求头
@@ -72,9 +74,10 @@ Request parseHttp(char* buffer){
         std::string key, value;
         is>>key;
         is>>value;
+        // 去掉多余的冒号
         key =key.replace(key.find(":"),1,"");
+        // 将解析出来的头加入
         req.Headers.emplace_back(key,value);
-        // std::cout<<"line:"<<l<<std::endl;
     }
     // todo: 解析请求体，暂时不解析请求体
     return req;
@@ -82,6 +85,7 @@ Request parseHttp(char* buffer){
 
 Response handle(Request req){
     if (req.Path == "/"){
+        // 如果是路径是/的话默认返回index.html页面
         req.Path = "/index.html";
     }
     Response resp;
@@ -89,8 +93,9 @@ Response handle(Request req){
     resp.StatusCode = 200;
     resp.Status = "OK";
 
-    // 读取文件内容到响应体中
+    // 构建资源路径
     std::string resource_path = web_root +req.Path;
+    // 读取文件内容到响应体中
     std::ifstream ifile;
     ifile.open(resource_path);
     // 一次性读取所有内容
@@ -113,6 +118,7 @@ int main(int argc, char *argv[]) {
     sockaddr_in client_addr ;
     socklen_t length = sizeof(client_addr);
     for (;;) {
+        // 循环接受http请求
         // 新建一个连接
         int conn = accept(listen_fd,(sockaddr*)&client_addr,&length);
         if (conn == -1){
@@ -124,10 +130,12 @@ int main(int argc, char *argv[]) {
             perror("read tcp data error");
         }
         Request req = parseHttp(buffer);
+        std::cout<<"request:"<<std::endl;
         std::cout<<req.Method<<" "<<req.Path<<std::endl;
         Response resp = handle(req);
         char buf[1024];
         sprintf(buf,"%s %d %s\n\r\n\r%s",resp.Protocol.c_str(),resp.StatusCode,resp.Status.c_str(),resp.Body.c_str());
+        std::cout<<"response:"<<std::endl<<buf<<std::endl;
         send(conn,buf,strlen(buf),0);
         // http请求结束，直接断开连接
         // 如果不断开连接，你将看到浏览器不停地转圈圈
